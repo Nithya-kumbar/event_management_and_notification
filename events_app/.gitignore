@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+events_app/eventsbackend/src/main/resources/application.properties
+# Backend confidential configuration
+eventsbackend/src/main/resources/application.properties
+eventsbackend/uploads/

@@ -13,8 +13,10 @@ import 'package:flutter/foundation.dart';
 import 'services/auth_service.dart';
 import 'services/event_service.dart';
 import 'screens/event_details_screen.dart';
-
-
+import 'services/admin_service.dart';
+import 'screens/admin_login_screen.dart';
+import 'screens/admin_dashboard_screen.dart';
+import 'screens/edit_event_screen.dart';
 // void main() {
 //   runApp(const MyApp());
 // }
@@ -40,6 +42,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => EventService(),
         ),
+          ChangeNotifierProvider(
+    create: (_) => AdminService(),
+          ),
       ],
 
       child: MaterialApp(
@@ -54,7 +59,7 @@ class MyApp extends StatelessWidget {
             seedColor: AppColors.primary,
           ),
 
-          textTheme: GoogleFonts.poppinsTextTheme(),
+         textTheme: GoogleFonts.poppinsTextTheme(),
 
           scaffoldBackgroundColor: AppColors.background,
 
@@ -75,7 +80,9 @@ routes: {
   '/calendar': (context) => const CalendarScreen(),
   '/department-filter': (context) => const DepartmentFilterScreen(),
   '/profile': (context) => const ProfileScreen(),
-
+  '/edit-event': (context) => const EditEventScreen(),
+'/admin-login': (context) => const AdminLoginScreen(),
+'/admin-dashboard': (context) => const AdminDashboardScreen(),
   '/event-details': (context) {
     final eventData =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;

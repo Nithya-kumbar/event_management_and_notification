@@ -234,6 +234,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 18),
+
+OutlinedButton.icon(
+  onPressed: () {
+    Navigator.pushNamed(
+      context,
+      '/admin-login',
+    );
+  },
+  icon: const Icon(Icons.admin_panel_settings),
+  label: const Text("Administrator Login"),
+),
                     ],
                   ),
                 ),

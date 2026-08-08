@@ -10,7 +10,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-
+import 'package:flutter/services.dart';
 class NotificationService {
 
   static final NotificationService _instance =
@@ -234,59 +234,73 @@ Future<void> init() async {
       if(time.isBefore(DateTime.now())){
         continue;
       }
-
-
-
-      await notifications.zonedSchedule(
-
-        eventId * 10 + i,
-
-        title,
-
-        reminder["message"] as String,
-
-
-        tz.TZDateTime.from(
-          time,
-          tz.local,
+try {
+  await notifications.zonedSchedule(
+    eventId * 10 + i,
+    title,
+    reminder["message"] as String,
+    tz.TZDateTime.from(time, tz.local),
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'event_reminders',
+        'Event Reminders',
+        channelDescription: 'College event reminders',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    ),
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+  );
+} on PlatformException catch (e) {
+  if (e.code == 'exact_alarms_not_permitted') {
+    // Fall back to inexact scheduling — still fires, just not to-the-second precise
+    await notifications.zonedSchedule(
+      eventId * 10 + i,
+      title,
+      reminder["message"] as String,
+      tz.TZDateTime.from(time, tz.local),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'event_reminders',
+          'Event Reminders',
+          channelDescription: 'College event reminders',
+          importance: Importance.max,
+          priority: Priority.high,
         ),
-
-
-        const NotificationDetails(
-
-          android:
-            AndroidNotificationDetails(
-
-              'event_reminders',
-
-              'Event Reminders',
-
-              channelDescription:
-                'College event reminders',
-
-              importance:
-                Importance.max,
-
-              priority:
-                Priority.high,
-
-            ),
-
-          iOS:
-            DarwinNotificationDetails(),
-
-        ),
-
-
-
-        androidScheduleMode:
-          AndroidScheduleMode
-              .exactAllowWhileIdle,
-
-      );
-
-
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  } else {
+    rethrow;
+  }
+}
     }
+    // ------------------------------------------------------------
+// Show an immediate popup notification (used for polling results)
+// ------------------------------------------------------------
+Future<void> showInstantNotification({
+  required int id,
+  required String title,
+  required String body,
+}) async {
+  await notifications.show(
+    id,
+    title,
+    body,
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'event_reminders',
+        'Event Reminders',
+        channelDescription: 'College event reminders',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    ),
+  );
+}
 
   }
 
@@ -306,13 +320,6 @@ Future<void> init() async {
     await notifications.cancelAll();
 
   }
-
-
-
-
-
-
-
 
   // ------------------------------------------------------------
   // Cancel one event
@@ -340,7 +347,30 @@ Future<void> init() async {
 
   }
 
-
+// ------------------------------------------------------------
+// Show an immediate popup notification (used for polling results)
+// ------------------------------------------------------------
+Future<void> showInstantNotification({
+  required int id,
+  required String title,
+  required String body,
+}) async {
+  await notifications.show(
+    id,
+    title,
+    body,
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'event_reminders',
+        'Event Reminders',
+        channelDescription: 'College event reminders',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    ),
+  );
+}
 
 
 }

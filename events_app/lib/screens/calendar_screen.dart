@@ -59,14 +59,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Event Calendar'),
         backgroundColor: AppColors.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, size: 18),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(
+              context, '/home', (route) => false),
         ),
       ),
       body: Consumer<EventService>(
@@ -134,6 +141,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           );
         },
       ),
+    ),
     );
   }
 

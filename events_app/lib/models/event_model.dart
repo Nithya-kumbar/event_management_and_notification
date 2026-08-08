@@ -13,8 +13,10 @@ class EventModel {
   final String location;
   final String? registrationLink;
   final String? imageUrl;
+  final String? fileType; // "IMAGE" or "PDF"
   final String organizer;
   final String category;
+  final DateTime? registrationDueDate;
 
   const EventModel({
     required this.id,
@@ -26,8 +28,10 @@ class EventModel {
     required this.location,
     this.registrationLink,
     this.imageUrl,
+    this.fileType,
     required this.organizer,
     required this.category,
+    this.registrationDueDate,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -53,10 +57,16 @@ class EventModel {
 
       imageUrl: json['image_url']?.toString(),
 
+      fileType: json['fileType']?.toString(),
+
       organizer:
           json['organizer']?.toString() ?? 'College Department',
 
       category: json['category']?.toString() ?? 'General',
+
+      registrationDueDate: json['registration_due_date'] != null
+          ? DateTime.tryParse(json['registration_due_date'].toString())
+          : null,
     );
   }
 
@@ -74,10 +84,31 @@ class EventModel {
       'location': location,
       'registration_link': registrationLink,
       'image_url': imageUrl,
+      'fileType': fileType,
       'organizer': organizer,
       'category': category,
+      'registration_due_date': registrationDueDate != null
+          ? '${registrationDueDate!.year.toString().padLeft(4, '0')}-'
+            '${registrationDueDate!.month.toString().padLeft(2, '0')}-'
+            '${registrationDueDate!.day.toString().padLeft(2, '0')}'
+          : null,
     };
   }
 
   Map<String, dynamic> toArgs() => toJson();
+
+  DateTime get effectiveDueDate => registrationDueDate ?? eventDate;
+
+  bool get isRegistrationClosed {
+    final today = DateTime.now();
+    final dueEnd = DateTime(
+      effectiveDueDate.year,
+      effectiveDueDate.month,
+      effectiveDueDate.day,
+      23,
+      59,
+      59,
+    );
+    return today.isAfter(dueEnd);
+  }
 }

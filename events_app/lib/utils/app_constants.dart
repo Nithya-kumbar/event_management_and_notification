@@ -9,7 +9,7 @@ class AppConstants {
     }
 
     if (Platform.isAndroid) {
-      return 'http://192.168.0.109:8080/api';
+      return 'http://10.151.9.145:8080/api';
     }
 
     return 'http://localhost:8080/api';
@@ -26,6 +26,7 @@ class AppConstants {
       'https://via.placeholder.com/400x200/1A3C6E/FFFFFF?text=Event';
   static const String profileImagePlaceholder =
       'https://via.placeholder.com/150/1A3C6E/FFFFFF?text=Student';
+      static String get fileBaseUrl => baseUrl.replaceAll('/api', '');
 
   // Department list - must match backend enum later
   static const List<String> departments = [
@@ -58,12 +59,4 @@ class AppConstants {
   static const String prefUserEmail = 'user_email';
   static const String prefUserDept = 'user_department';
 
-  // Base URL for future Spring Boot API
-  // static const String baseUrl = 'http://10.0.2.2:8080/api'; // Android emulator
-  // static const String baseUrl = 'http://localhost:8080/api';  // iOS simulator
-
-  // Future API endpoints (reference only)
-  // static const String loginEndpoint = '/login';
-  // static const String registerEndpoint = '/register';
-  // static const String eventsEndpoint = '/events';
 }

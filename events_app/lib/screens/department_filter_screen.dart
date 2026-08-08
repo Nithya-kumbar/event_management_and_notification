@@ -47,14 +47,21 @@ class _DepartmentFilterScreenState extends State<DepartmentFilterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Browse by Department'),
         backgroundColor: AppColors.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, size: 18),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(
+              context, '/home', (route) => false),
         ),
       ),
 body: Consumer<EventService>(
@@ -201,6 +208,7 @@ body: Consumer<EventService>(
     );
   },
 ),
+    ),
     );
   }
 }

@@ -9,11 +9,12 @@ import 'package:intl/intl.dart';
 import '../models/event_model.dart';
 import '../utils/app_colors.dart';
 import '../widgets/custom_button.dart';
-
+import '../utils/app_constants.dart';
 import '../services/registration_service.dart';
 import '../services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../services/notification_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailsScreen extends StatelessWidget {
   // Receives event data as navigation arguments
@@ -51,76 +52,117 @@ class EventDetailsScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           // Large image header with back button
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            backgroundColor: deptColor,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.black26,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.arrow_back_ios,
-                    color: Colors.white, size: 16),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Gradient image placeholder
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          deptColor.withOpacity(0.9),
-                          deptColor,
-                          Colors.black.withOpacity(0.4),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Decorative pattern
-                  CustomPaint(painter: _GridPatternPainter(deptColor)),
-                  // Event icon
-                  Center(
-                    child: Icon(
-                      Icons.event_note_rounded,
-                      size: 80,
-                      color: Colors.white.withOpacity(0.25),
-                    ),
-                  ),
-                  // Category badge
-                  Positioned(
-                    bottom: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black26,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        event.category,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+SliverAppBar(
+  expandedHeight: 220,
+  pinned: true,
+  backgroundColor: deptColor,
+  leading: IconButton(
+    icon: Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(Icons.arrow_back_ios,
+          color: Colors.white, size: 16),
+    ),
+    onPressed: () => Navigator.pop(context),
+  ),
+  flexibleSpace: FlexibleSpaceBar(
+    background: Builder(
+      builder: (context) {
+        final hasImage = eventData["image_url"] != null &&
+            eventData["image_url"].toString().isNotEmpty &&
+            eventData["fileType"] == "IMAGE";
+        final hasPdf = eventData["image_url"] != null &&
+            eventData["image_url"].toString().isNotEmpty &&
+            eventData["fileType"] == "PDF";
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            if (hasImage)
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    backgroundColor: Colors.black,
+                    appBar: AppBar(backgroundColor: Colors.black),
+                    body: Center(
+                      child: InteractiveViewer(
+                        child: Image.network(
+                          "${AppConstants.fileBaseUrl}${eventData["image_url"]}",
                         ),
                       ),
                     ),
                   ),
-                ],
+                )),
+                child: Image.network(
+                  "${AppConstants.fileBaseUrl}${eventData["image_url"]}",
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(color: deptColor),
+                ),
+              )
+            else ...[
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      deptColor.withOpacity(0.9),
+                      deptColor,
+                      Colors.black.withOpacity(0.4),
+                    ],
+                  ),
+                ),
+              ),
+              CustomPaint(painter: _GridPatternPainter(deptColor)),
+              Center(
+                child: Icon(
+                  hasPdf ? Icons.picture_as_pdf : Icons.event_note_rounded,
+                  size: 80,
+                  color: Colors.white.withOpacity(hasPdf ? 0.7 : 0.25),
+                ),
+              ),
+            ],
+
+            if (hasPdf)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () => launchUrl(
+                    Uri.parse(
+                        "${AppConstants.fileBaseUrl}${eventData["image_url"]}"),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                ),
+              ),
+
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  event.category,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
-          ),
-
+          ],
+        );
+      },
+    ),
+  ),
+),
           // Event content
           SliverToBoxAdapter(
             child: Padding(
@@ -188,9 +230,13 @@ class EventDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 28),
 
                   // Registration button
-                  CustomButton(
-                    text: 'Register for This Event',
-onPressed: () async {
+ CustomButton(
+  text: event.isRegistrationClosed
+      ? 'Registration Closed'
+      : 'Register for This Event',
+  onPressed: event.isRegistrationClosed
+      ? () {}
+      : () async {
   try {
     final authService =
         Provider.of<AuthService>(context, listen: false);
